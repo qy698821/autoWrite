@@ -4,6 +4,7 @@ import time
 import win32clipboard as w
 import win32con
 import win32api
+import win32clipboard
 import os
 from os.path import join, getsize
 import _thread
@@ -17,9 +18,10 @@ def main():
 
 def CreateWindow():
     def begin():
+        space =float(input.get())
         global isRuning
         if isRuning == False:
-            _thread.start_new_thread(do_auto_write, ())
+            _thread.start_new_thread(do_auto_write, (space,))
         isRuning = True
 
     def pause():
@@ -38,29 +40,33 @@ def CreateWindow():
     confirm = Button(top,text ="开始",command = begin)
     pause = Button(top,text ="暂停",command = pause)
     cancel = Button(top,text ="结束",command = Cancel)
+    tips2 = Text(top, width=300, height=1)
+    tips2.insert(END, '输入间隔（秒）：')
+    input = Entry(top)
     tips.pack()
+    tips2.pack()
+    input.pack()
     confirm.pack()
     pause.pack()
     cancel.pack()
     top.mainloop()
 
-def do_auto_write():
+def do_auto_write( space ):
     global isRuning
     lines = copy_from_file("config.txt")
-    time.sleep(1);
-    if isRuning == True:
+    while isRuning == True:
             for line in lines:
                 if isRuning == False:
                     break
-                copy_txt(line)
-                time.sleep(1);
+                time.sleep(space);
+                copy_txt(line.replace('\n',''))
                 pasteToOther();
     isRuning = False
 
 def copy_txt( aString ):
     w.OpenClipboard()
     w.EmptyClipboard()
-    w.SetClipboardText(aString)
+    w.SetClipboardData(win32clipboard.CF_UNICODETEXT,aString)
     w.CloseClipboard()
 
 def copy_from_file( aString ):
